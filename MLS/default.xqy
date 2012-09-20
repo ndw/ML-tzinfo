@@ -31,6 +31,10 @@ declare function local:showtz(
         <td>{map:get($details, 'zone')}</td>
       </tr>
       <tr>
+        <td>Canonical zone: </td>
+        <td>{map:get($details, 'canonical-zone')}</td>
+      </tr>
+      <tr>
         <td>Format string: </td>
         <td>{map:get($details, 'format')}</td>
       </tr>
