@@ -10,7 +10,9 @@ declare option xdmp:mapping "false";
 declare function local:form()
 {
   <form method="get" action="/default.xqy">
-  <p>Enter timezone: <input placeholder="e.g. Europe/London" name="tz"/></p>
+  <p>Enter timezone: <input placeholder="e.g. Europe/London" name="tz"/>
+  <input type="submit"/>
+  </p>
   </form>
 };
 
