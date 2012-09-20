@@ -46,7 +46,8 @@ declare function tzinfo:details(
   let $_       := map:put($map, 'dstoff', xs:dayTimeDuration($apply/@save))
 
   let $_       := map:put($map, 'dt', $dt)
-  let $_       := map:put($map, 'zone', $zone)
+  let $_       := map:put($map, 'zone', $userzone)
+  let $_       := map:put($map, 'canonical-zone', $zone)
   let $dtz     := adjust-dateTime-to-timezone(
                       $dt + map:get($map, 'gmtoff') - map:get($map, 'dstoff'),
                       xs:dayTimeDuration("PT0H"))
