@@ -1,0 +1,81 @@
+<export><workspace name="setup-tzinfo"><query name="Query 1" focus="true" active="true" mode="xquery">xquery version "1.0-ml";
+
+import module namespace admin="http://marklogic.com/xdmp/admin" 
+       at "/MarkLogic/admin.xqy";
+
+declare namespace db="http://marklogic.com/xdmp/database";
+declare namespace f="http://marklogic.com/xdmp/assignments";
+
+(: Adjust these to taste :)
+declare variable $FOREST-NAME   := "tzinfo";
+declare variable $FOREST-COUNT  := 4;
+declare variable $DATABASE-NAME := "tzinfo";
+declare variable $HTTP-NAME     := "tzinfo";
+declare variable $HTTP-ROOT     := "/projects/github/ML-tzinfo/MLS";
+declare variable $HTTP-PORT     := 8302;
+declare variable $GROUP         := xdmp:group("Default");
+
+declare function local:create-forests(
+  $config as element(configuration),
+  $count as xs:unsignedLong
+) as element(configuration)
+{
+  if ($count &gt; $FOREST-COUNT)
+  then
+    $config
+  else
+    let $config := admin:forest-create($config, concat($FOREST-NAME,"-",$count),
+                                       xdmp:host(), ())
+    return
+      local:create-forests($config, $count + 1)
+};
+
+declare function local:attach-forests(
+  $config as element(configuration),
+  $dbid as xs:unsignedLong,
+  $count as xs:unsignedLong
+) as element(configuration)
+{
+  if ($count &gt; $FOREST-COUNT)
+  then
+    $config
+  else
+    let $fname  := concat($FOREST-NAME,"-",$count)
+    let $fid as xs:unsignedLong
+      := $config/f:assignments/f:assignment[f:forest-name = $fname]/f:forest-id
+    let $config := admin:database-attach-forest($config, $dbid, $fid)
+    return
+      local:attach-forests($config, $dbid, $count + 1)
+};
+
+let $_       := xdmp:security-assert("http://marklogic.com/xdmp/privileges/admin", "execute")
+let $config  := admin:get-configuration()
+let $config  := local:create-forests($config, 1)
+let $config  := admin:database-create($config, $DATABASE-NAME,
+                                      xdmp:database("Security"),
+                                      xdmp:database("Schemas"))
+let $dbid as xs:unsignedLong
+  := $config/db:databases/db:database[db:database-name = $DATABASE-NAME]/db:database-id
+
+let $_       := admin:save-configuration($config)
+
+let $config  := admin:database-set-collection-lexicon($config, $dbid, true())
+
+let $config  := local:attach-forests($config, $dbid, 1)
+
+let $config  := admin:http-server-create($config, $GROUP, $HTTP-NAME, $HTTP-ROOT,
+                                         $HTTP-PORT, 0, $dbid)
+
+let $_       := admin:save-configuration($config)
+
+let $_       := xdmp:eval(concat('xquery version "1.0-ml";',
+                                 'import module namespace sec="http://marklogic.com/xdmp/security"',
+                                 '       at "/MarkLogic/security.xqy";',
+                                 'sec:create-role("timezone-user", "ML-tzinfo user", (), (), ())'),
+                          (),
+                          &lt;options xmlns="xdmp:eval"&gt;
+                            &lt;database&gt;{xdmp:database("Security")}&lt;/database&gt;
+                          &lt;/options&gt;)
+return
+  "Setup complete."
+</query></workspace></export>

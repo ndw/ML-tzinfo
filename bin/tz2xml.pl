@@ -1,8 +1,30 @@
 #!/usr/bin/perl -- # -*- Perl -*-
 
+# This script reads the Internet Timezone Database "data" files and produces
+# an XML representation.
+#
+# Usage: perl tz2xml.pl [ -p postURI ] tzdatabase/data/*
+
 use strict;
 use English;
 use Time::Local;
+use Getopt::Std;
+use LWP;
+use vars qw($opt_p);
+
+my $usage = "$0 [-p postto] shapefile\n";
+
+die $usage if ! getopts('p:');
+
+my $postURI = $opt_p;
+my $username = "admin";
+my $password = "admin";
+
+my $ua = undef;
+if ($postURI) {
+    $ua = new LWP::UserAgent;
+    $ua->timeout(300);
+}
 
 my $zone = undef;
 
@@ -10,10 +32,10 @@ my %MONTHS = ( 'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
                'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
                'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12' );
 
-print "<tzinfo xmlns='http://nwalsh.com/xmlns/pim/tzinfo'>\n";
+my $data = "<tzinfo xmlns='http://nwalsh.com/ns/tzinfo'>\n";
 
 while (my $file = shift @ARGV) {
-    print "<!-- $file -->\n";
+    $data .=  "<!-- $file -->\n";
     open (F, $file);
     while (<F>) {
         chop;
@@ -23,11 +45,11 @@ while (my $file = shift @ARGV) {
         s/\s*\#.*$//;
 
         if (/^Rule\s/) {
-            parseRule($_);
+            $data .= parseRule($_);
         } elsif (/^Zone\s/ or /^\s/) {
-            parseZone($_);
+            $data .= parseZone($_);
         } elsif (/^Link\s/) {
-            parseLink($_);
+            $data .= parseLink($_);
         } else {
             die "Invalid tzinfo: $_\n";
         }
@@ -35,7 +57,15 @@ while (my $file = shift @ARGV) {
     close (F);
 }
 
-print "</tzinfo>\n";
+$data .= "</tzinfo>\n";
+
+if ($postURI) {
+    postXML($data);
+} else {
+    print $data;
+}
+
+# ======================================================================
 
 sub parseRule {
     local $_ = shift;
@@ -60,6 +90,7 @@ sub parseRule {
     # Patch exceptions
     $at = "0:00" if $at eq '0';
     $save = "0:00" if $save eq '0';
+    $save = "1:00" if $save eq '1';
 
     # I have no idea what the 's' and 'u' flags mean, dropping them.
     if ($at =~ /^(\d+):(\d+)[su]?$/) {
@@ -88,11 +119,12 @@ sub parseRule {
         $dt = sprintf("%04d-%02d-%02dT%02d:%02d:00", $from, $in, $on, $1, $2);
     }
 
-    print "<rule name='$name' from='$from' to='$to' ";
-    print "dt='$dt' " if defined($dt);
-    print "type='$type' " unless $type eq '-';
-    print "in='$in' on='$on' at='$at' save='$save' s='$s'";
-    print "/>\n";
+    $_ = "<rule name='$name' from='$from' to='$to' ";
+    $_ .= "dt='$dt' " if defined($dt);
+    $_ .= "type='$type' " unless $type eq '-';
+    $_ .= "in='$in' on='$on' at='$at' save='$save' s='$s'";
+    $_ .=  "/>\n";
+    return $_;
 }
 
 sub parseZone {
@@ -191,9 +223,10 @@ sub parseZone {
         print STDERR "Until when? $until\n";
     }
 
-    print "<zone name='$zone' rule='$rules' gmtoff='$off' format='$format' ";
-    print "until='$until' " if defined($until);
-    print "/>\n";
+    $_ = "<zone name='$zone' rule='$rules' gmtoff='$off' format='$format' ";
+    $_ .= "until='$until' " if defined($until);
+    $_ .= "/>\n";
+    return $_;
 }
 
 sub parseLink {
@@ -208,5 +241,40 @@ sub parseLink {
 
     die "Invalid tzinfo: $_\n" if @parts;
 
-    print "<link from='$from' to='$to'/>\n";
+    return "<link from='$from' to='$to'/>\n";
+}
+
+sub postXML {
+    my $data = shift;
+
+    my $req = new HTTP::Request('POST' => $postURI);
+    $req->content($data);
+    $req->header("Content-Type" => "application/xml");
+
+    # Insert your authentication details here
+
+    my $resp = $ua->request($req);
+
+    if ($resp->code() == 401 && defined($username) && defined($password)) {
+        #print "Authentication required. Trying again with specified credentials.\n";
+
+        my $host = $postURI;
+        $host =~ s/^.*?\/([^\/]+).*?$/$1/;
+
+        my $realm = scalar($resp->header('WWW-Authenticate'));
+        if ($realm =~ /realm=[\'\"]/) {
+            $realm =~ s/^.*?realm=([\'\"])(.*?)\1.*$/$2/;
+        } else {
+            $realm =~ s/^.*?realm=(.*?)$/$1/;
+        }
+
+        # print "Auth: $host, $realm, $username, $password\n";
+
+        $ua->credentials($host, $realm, $username => $password);
+        $resp = $ua->request($req);
+    }
+
+    die "POST failed: " . $resp->code() unless $resp->code eq 200;
+
+    print $resp->content(), "\n";
 }
