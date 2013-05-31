@@ -71,7 +71,7 @@ function showTimezone(data, textStatus, jqXHR) {
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-        html = "Timezone: " + data.name + "<br />";
+        html = "Timezone: " + data.timezone + "<br />";
         html += "Latitude: " + data.lat + "<br />";
         html += "Longitude: " + data.lon;
         infowindow.setContent(html);
@@ -157,14 +157,14 @@ function show_boundaries(data, textStatus, jqXHR) {
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-        for (pos = 0; pos < data.name.length; pos++) {
+        for (pos = 0; pos < data.timezone.length; pos++) {
             if (pos > 0) {
                 html += "<br />";
             }
-            if (pos > 0 && pos+1 === data.name.length) {
+            if (pos > 0 && pos+1 === data.timezone.length) {
                 html += "or ";
             }
-            html += data.name[pos];
+            html += data.timezone[pos];
         }
 
         infowindow.setContent(html);
