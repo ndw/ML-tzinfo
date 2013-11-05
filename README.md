@@ -43,8 +43,8 @@ If you want to do it "by hand":
 ### Installing the Time Zone Database
 
 1. Download the most recent [Time Zone Database](http://www.iana.org/time-zones).
-   On 25 May 2013, the most recent version was
-   [tzdata2013c.tar.gz](http://www.iana.org/time-zones/repository/releases/tzdata2013c.tar.gz).
+   On 05 November 2013, the most recent version was
+   [tzdata2013h.tar.gz](http://www.iana.org/time-zones/repository/releases/tzdata2013h.tar.gz)
 
 2. Expand this archive somewhere.
 
