@@ -68,11 +68,12 @@ declare function tzinfo:details(
   let $format  := string($tzone/@format)
 
   (: Sometimes there's a %s in the format and no @s to insert...e.g. Asia/Urumqi :)
+  (: Assume it should be deleted... :)
   let $s       := $apply/@s
   let $_       := map:put($map, 'format', if (contains($format, '%s') and $s)
                                           then replace($format, '%s',
                                                        if ($s = '-') then '' else $s)
-                                          else $format)
+                                          else replace($format, '%s', ''))
   return
     $map
 };
