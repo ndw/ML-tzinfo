@@ -43,8 +43,8 @@ If you want to do it "by hand":
 ### Installing the Time Zone Database
 
 1. Download the most recent [Time Zone Database](http://www.iana.org/time-zones).
-   On 05 November 2013, the most recent version was
-   [tzdata2013h.tar.gz](http://www.iana.org/time-zones/repository/releases/tzdata2013h.tar.gz)
+   On 11 February 2016, the most recent version was
+   [tzdata2016a.tar.gz](https://www.iana.org/time-zones/repository/releases/tzdata2016a.tar.gz).
 
 2. Expand this archive somewhere.
 
@@ -55,7 +55,8 @@ If you want to do it "by hand":
              europe northamerica pacificnew southamerica
 
    If you need a username/password to access the server, you'll have to edit those
-   variables in the script.
+   variables in the script. You will also need to require authentication at least
+   temporarily. The upload script requires admin rights.
 
    If you prefer, you can leave out the `-p` option and upload the data
    file by some other means.
@@ -66,7 +67,7 @@ If you want to do it "by hand":
 
 1. Download the most recent [tz\_world](http://efele.net/maps/tz/world/) shapefile.
    Get the "mp" version that has a single geometry for each timezone.
-   On 25 May 2013, the most recent version was
+   On 11 February 2016, the most recent version was
    [tz\_world\_mp.zip](http://efele.net/maps/tz/world/tz_world_mp.zip).
 
 2. Expand this archive somewhere.
@@ -76,7 +77,9 @@ If you want to do it "by hand":
         perl bin/shape2xml.pl -p http://localhost:8302/upload.xqy tz_world_mp.shp
 
    If you need a username/password to access the server, you'll have
-   to edit those variables in the script.
+   to edit those variables in the script. You will also need to
+   require authentication at least temporarily. The upload script
+   requires admin rights.
 
    If you prefer, you can leave out the `-p` option and upload the data
    file by some other means.
