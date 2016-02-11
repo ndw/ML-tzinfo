@@ -57,7 +57,7 @@ declare function local:upload-tzinfo(
    concat("Uploaded ", count($tzdata/*), " timezone documents.&#10;"))
 };
 
-let $_    := xdmp:security-assert("http://marklogic.com/xdmp/privileges/admin", "execute")
+let $_    := xdmp:security-assert("http://marklogic.com/xdmp/privileges/admin-ui", "execute")
 let $_    := xdmp:set-response-content-type("text/plain")
 let $data := xdmp:get-request-body("xml")/*
 return
