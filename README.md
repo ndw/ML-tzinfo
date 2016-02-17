@@ -20,6 +20,8 @@ they are not included in this distribution.
 
 ### Installing the MarkLogic Server components
 
+MarkLogic Server V8.0 or later is required.
+
 The easiest way is to load `bin/setup-tzinfo.xml` into QConsole, edit the variables
 at the top to suit your needs, and run the query.
 
@@ -35,7 +37,8 @@ If you want to do it "by hand":
    appserver at the `MLS` directory in this distribution.
 
 3. For the purposes of this document, I'm assuming that the appserver
-   runs on localhost:8302.
+   runs on localhost:8302. You must specify `/rewriter.xml` as the URL
+   rewriter for the server.
 
 4. Create a `timezone-user` role. Users with this role will be able to
    read the timezone rules and maps.

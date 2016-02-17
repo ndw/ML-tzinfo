@@ -1,4 +1,4 @@
-<export><workspace name="setup-tzinfo"><query name="Query 1" focus="true" active="true" mode="xquery">xquery version "1.0-ml";
+<export><workspace name="setup-tzinfo"><query name="Query 1" focus="true" active="true" content-source="as:7999856216266197863:" mode="xquery">xquery version "1.0-ml";
 
 import module namespace admin="http://marklogic.com/xdmp/admin" 
        at "/MarkLogic/admin.xqy";
@@ -65,6 +65,10 @@ let $config  := local:attach-forests($config, $dbid, 1)
 
 let $config  := admin:http-server-create($config, $GROUP, $HTTP-NAME, $HTTP-ROOT,
                                          $HTTP-PORT, 0, $dbid)
+
+
+let $srvid   := admin:appserver-get-id($config, $GROUP, $HTTP-NAME)
+let $config  := admin:appserver-set-url-rewriter($config, $srvid, "/rewriter.xml")
 
 let $_       := admin:save-configuration($config)
 

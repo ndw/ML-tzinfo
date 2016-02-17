@@ -31,7 +31,12 @@ function showTimezone(data, textStatus, jqXHR) {
     if (data.utc !== undefined) {
         $("#utc").text(data.utc.substring(0,19) + " UTC / ");
         $("#localtime").text(data.dt.substring(0,19) + " " + data.format);
-        tmp = data.gmtoffset.match("^(-?)PT([0-9]+)H(([0-9]+)M)?")
+        // GMT is a special case
+        if (data.gmtoffset === "PT0S") {
+            tmp = "PT0H0M".match("^(-?)PT([0-9]+)H(([0-9]+)M)?")
+        } else {
+            tmp = data.gmtoffset.match("^(-?)PT([0-9]+)H(([0-9]+)M)?")
+        }
         offset = tmp[1] + tmp[2];
         if (tmp[4] === undefined) {
             offset += ":00";
@@ -49,10 +54,16 @@ function showTimezone(data, textStatus, jqXHR) {
         $("#show").attr("disabled", true);
     } else {
         $("#tz").text(data.timezone);
-        $("#show").attr("disabled", false);
+        if ($("#setshow").val() === "showing") {
+            $("#show").attr("disabled", true);
+        } else {
+            $("#show").attr("disabled", false);
+        }
     }
 
-    $("#msg").text("Click on map to choose a different location...");
+    if ($("#setshow").val() !== "showing") {
+        $("#msg").text("Click on map to choose a different location...");
+    }
 
     if (marker !== undefined) {
         marker.setMap(null);
@@ -116,16 +127,29 @@ function show_map(position) {
     $("#dlat").val(latitude);
     $("#dlon").val(longitude);
 
-    jQuery.get("/api/timezone.xqy",
+    jQuery.get("/api/timezone",
                { "lat": latitude,
                  "lon": longitude },
                showTimezone);
 }
 
 function show_click() {
+    var boundaries = "/boundaries"
+
+    $("#setshow").val("showing")
     $("#show").attr("disabled", true);
     $("#msg").text("Calculating timezone polygons...");
-    jQuery.get("/api/timezone-details.xqy",
+
+    if ($("#debugbounds").val() === "true") {
+        boundaries = boundaries + "/debug"
+    }
+
+    window.history.pushState("", "Map Update",
+                             "/map/" + parseFloat($("#lat").val()).toFixed(4)
+                             + "/" + parseFloat($("#lon").val()).toFixed(4)
+                             + boundaries)
+
+    jQuery.get("/api/timezone-details",
                { "lat": $("#lat").val(),
                  "lon": $("#lon").val() },
                show_boundaries);
@@ -135,6 +159,7 @@ function show_boundaries(data, textStatus, jqXHR) {
     var html = "";
     var pos = 0;
 
+    $("#setshow").val("false")
     $("#msg").text("Click on map to choose a different location...");
 
     if (marker !== undefined) {
@@ -171,12 +196,16 @@ function show_boundaries(data, textStatus, jqXHR) {
         infowindow.open(map, this);
     });
 
-    $(data.tzboxes).each(function() {
-        pgon("#000000", this.points);
-    });
-    $(data.pboxes).each(function() {
-        pgon("#0000FF", this.points);
-    });
+    if ($("#debugbounds").val() === "true") {
+        $(data.tzboxes).each(function() {
+            pgon("#000000", this.points);
+        });
+        $(data.pboxes).each(function() {
+            pgon("#0000FF", this.points);
+        });
+        $("#debugbounds").val("false")
+    }
+
     $(data.mpolys).each(function() {
         pgon("#FF0000", this.points);
     });
@@ -257,6 +286,10 @@ $(document).ready(function() {
         $("#localtime").text("");
         $("#offset").text("");
 
+        window.history.pushState("", "Map Update",
+                                 "/map/" + event.latLng.lat().toFixed(4)
+                                 + "/" + event.latLng.lng().toFixed(4))
+
         if (lines[0]) {
             $("#msg").text("Clearing polygons...");
             while (lines[0]) {
@@ -265,7 +298,7 @@ $(document).ready(function() {
             $("#msg").text("Calculating...");
         }
 
-        jQuery.get("/api/timezone.xqy",
+        jQuery.get("/api/timezone",
                    { "lat": event.latLng.lat(),
                      "lon": event.latLng.lng(),
                      "dt": $("#dt").val() },
@@ -284,16 +317,20 @@ $(document).ready(function() {
 
         setTimeout(function() {
             if (!geoloc) {
-                jQuery.get("/api/timezone.xqy",
+                jQuery.get("/api/timezone",
                            { "lat": initlat,
                              "lon": initlon },
                            showTimezone);
             }
         }, 5000);
     } else {
-        jQuery.get("/api/timezone.xqy",
+        jQuery.get("/api/timezone",
                    { "lat": initlat,
                      "lon": initlon },
                    showTimezone);
+    }
+
+    if ($("#setshow").val() === "true") {
+        show_click()
     }
 });

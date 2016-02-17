@@ -63,7 +63,7 @@ return
           <p class="error">{$msg}</p>
       }
 
-      <form action="/timezone.xqy" method="GET">
+      <form action="/timezone" method="GET">
         <p>Details for
           <input id="dt" name="dt" value="{$dt}" size="30" onchange="submit()" />
           in the

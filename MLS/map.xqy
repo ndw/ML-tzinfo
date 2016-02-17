@@ -30,8 +30,10 @@ let $dt     := if (empty(timezone-from-dateTime($dt)))
                then $dt
                else xs:dateTime(substring(string($dt), 1, 19))
 
-let $lats   := xdmp:get-request-field("lat")
-let $lons   := xdmp:get-request-field("lon")
+let $lats    := xdmp:get-request-field("lat")
+let $lons    := xdmp:get-request-field("lon")
+let $setshow := string(xdmp:get-request-field("bounds")) != ""
+let $debugb  := string(xdmp:get-request-field("debugbounds")) != ""
 
 let $lat    := if (exists($lats) and $lats castable as xs:float)
                then xs:float($lats)
@@ -47,10 +49,10 @@ return
       <title>TZ Info</title>
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"
               type="text/javascript"></script>
+      <script src="http://maps.google.com/maps/api/js"
+              type="text/javascript"></script>
       <script type="text/javascript"
-              src="http://maps.google.com/maps/api/js?sensor=false"></script>
-      <script type="text/javascript"
-              src="js/tzmap.js"></script>
+              src="/js/tzmap.js"></script>
       <style type="text/css">
 .error {{
   padding-left: 1em;
@@ -78,6 +80,8 @@ return
       </p>
       <input type="hidden" id="lat" name="lat" value="{$lats}"/>
       <input type="hidden" id="lon" name="lon" value="{$lons}"/>
+      <input type="hidden" id="setshow" name="setshow" value="{$setshow}"/>
+      <input type="hidden" id="debugbounds" name="debugbounds" value="{$debugb}"/>
       <p id="button"><input id="show" type="button" value="Show boundaries" disabled="true"/></p>
     </body>
   </html>
