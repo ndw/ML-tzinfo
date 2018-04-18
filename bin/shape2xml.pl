@@ -25,12 +25,12 @@ my $shapefile = new Geo::ShapeFile($shapefn);
 my $ua = undef;
 if ($postURI) {
     $ua = new LWP::UserAgent;
-    $ua->timeout(600);
+    $ua->timeout(1200);
 }
 
 foreach my $id (1 .. $shapefile->shapes()) {
     my %dbf = $shapefile->get_dbf_record($id);
-    my $name = $dbf{'TZID'};
+    my $name = $dbf{'tzid'};
     my $shape = $shapefile->get_shp_record($id);
 
     next if $name eq 'uninhabited'; # not sure what to do with these
