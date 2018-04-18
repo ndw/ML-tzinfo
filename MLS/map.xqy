@@ -43,13 +43,17 @@ let $lon    := if (exists($lons) and $lons castable as xs:float)
                then xs:float($lons)
                else -98.58333
 
+let $key    := doc("/etc/config.xml")/config/maps-api-key
+let $uri    := if (empty($key))
+               then "https://maps.google.com/maps/api/js"
+               else "https://maps.google.com/maps/api/js?key=" || $key
 return
   <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
       <title>TZ Info</title>
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"
               type="text/javascript"></script>
-      <script src="http://maps.google.com/maps/api/js"
+      <script src="{$uri}"
               type="text/javascript"></script>
       <script type="text/javascript"
               src="/js/tzmap.js"></script>
