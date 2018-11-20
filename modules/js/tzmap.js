@@ -14,7 +14,11 @@ let polygons = [];
 let markers = [];
 
 $(document).ready(function() {
-  map = L.map("map").setView([curLatitude,curLongitude], zoom);
+  map = L.map("map", {
+    worldCopyJump: true
+  });
+
+  map.setView([curLatitude,curLongitude], zoom);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'map data © OpenStreetMap contributors',
     minZoom: 1,
@@ -166,7 +170,8 @@ function convert(value, pos, neg) {
 }
 
 function showPolygons(data, textStatus, jqXHR) {
-  //console.log(data);
+  //console.log("Showing polygons: " + data.name);
+
   for (poly of polygons) {
     map.removeLayer(poly);
   }
@@ -174,11 +179,13 @@ function showPolygons(data, textStatus, jqXHR) {
 
   if (data.include && data.exclude) {
     for (pos = 0; pos < data.include.length; pos++) {
+      //console.log("Include polygon with " + data.include[pos].length + " vertices")
       let poly = L.polygon(data.include[pos], { color: "green" });
       polygons.push(poly);
       poly.addTo(map);
     }
     for (pos = 0; pos < data.exclude.length; pos++) {
+      //console.log("Exclude polygon with " + data.exclude[pos].length + " vertices")
       let poly = L.polygon(data.exclude[pos], { color: "red", fillColor: "white" })
       polygons.push(poly);
       poly.addTo(map);
