@@ -197,7 +197,7 @@ function showPolygons(data, textStatus, jqXHR) {
 }
 
 function geocode(event) {
-  let key = "AIzaSyAmsAwBkfUMBxR9gJB7G2GX5AYVm0f7iSo";
+  let key = $("#key").val();
 
   event.preventDefault();
   if (event.keyCode == 13) {

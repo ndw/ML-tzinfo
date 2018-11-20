@@ -3,6 +3,8 @@ xquery version "1.0-ml";
 import module namespace tzinfo="http://nwalsh.com/ns/tzinfo"
        at "/api/tzinfo.xqy";
 
+declare namespace tzp = "http://nwalsh.com/ns/tzpolygon";
+
 declare default function namespace "http://www.w3.org/2005/xpath-functions";
 
 let $deftz  := "America/Chicago"
@@ -57,9 +59,16 @@ return
       <div id="map"/>
       <p><span id="utc"></span> <span id="localtime"></span> <span id="offset"></span>
       </p>
-      <p>Address:
-      <input id="addr" name="addr" type="text" width="128" size="128" placeholder="Enter an address"/>
-      </p>
+
+      { let $key := doc("/etc/config.xml")/tzp:config/tzp:geocode-key/string()
+        where exists($key)
+        return
+          <p>Address:
+          <input id="addr" name="addr" type="text" width="128" size="128" placeholder="Enter an address"/>
+          <input type="hidden" name="key" id="key" value="{$key}"/>
+          </p>
+      }
+
       <input type="hidden" id="lat" name="lat" value="{$lats}"/>
       <input type="hidden" id="lon" name="lon" value="{$lons}"/>
       <input type="hidden" id="timezone" name="timezone" value="{$tzreq}"/>
