@@ -55,9 +55,10 @@ return
 
       <p id="msg"></p>
       <div id="map"/>
-      <p>
-      <br/>
-      <span id="utc"></span> <span id="localtime"></span> <span id="offset"></span>
+      <p><span id="utc"></span> <span id="localtime"></span> <span id="offset"></span>
+      </p>
+      <p>Address:
+      <input id="addr" name="addr" type="text" width="128" size="128" placeholder="Enter an address"/>
       </p>
       <input type="hidden" id="lat" name="lat" value="{$lats}"/>
       <input type="hidden" id="lon" name="lon" value="{$lons}"/>

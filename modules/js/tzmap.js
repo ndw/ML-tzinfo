@@ -12,6 +12,7 @@ let lineColor = '#ff0000';
 let lineOpacity = 0.5;
 let polygons = [];
 let markers = [];
+let address = "";
 
 $(document).ready(function() {
   map = L.map("map", {
@@ -46,6 +47,8 @@ $(document).ready(function() {
   }
 
   map.on('click', onClick);
+
+  $("#addr").on("keyup", geocode);
 });
 
 function gpsSuccess(position) {
@@ -191,4 +194,69 @@ function showPolygons(data, textStatus, jqXHR) {
       poly.addTo(map);
     }
   }
+}
+
+function geocode(event) {
+  let key = "AIzaSyAmsAwBkfUMBxR9gJB7G2GX5AYVm0f7iSo";
+
+  event.preventDefault();
+  if (event.keyCode == 13) {
+    address = $("#addr").val();
+    $("#addr").val("Geocoding...");
+    $.ajax({
+      "url": "https://maps.googleapis.com/maps/api/geocode/json?address=" + address + "&key=" + key,
+      "success": geocodeSuccess,
+      "error": geocodeError,
+      "dataType": "json"
+    });
+  }
+}
+
+function geocodeSuccess(data, status, jqXHR) {
+  if (data.status == "ZERO_RESULTS") {
+    // no results
+  } else {
+    if (status == "success" && "results" in data) {
+      let found = false;
+      for (let result of data.results) {
+        if (!found) {
+          if ("formatted_address" in result
+              && "geometry" in result) {
+            found = true;
+            address = result.formatted_address;
+            curLatitude = result.geometry.location.lat;
+            curLongitude = result.geometry.location.lng;
+          }
+        }
+      }
+
+      if (found) {
+        curLocation = "obtained";
+        map.setView([curLatitude,curLongitude], zoom);
+
+        $("#dlat").val(curLatitude);
+        $("#dlon").val(curLongitude);
+        $("#tz").text("...computing...");
+        $("#utc").text("");
+        $("#localtime").text("");
+        $("#offset").text("");
+
+        window.history.pushState("", "Map Update",
+                                 "/map/" + curLatitude.toFixed(4)
+                                 + "/" + curLongitude.toFixed(4));
+
+        jQuery.get("/api/timezone",
+                   { "lat": curLatitude,
+                     "lon": curLongitude,
+                     "dt": $("#dt").val() },
+                   showTimezone);
+      }
+    }
+  }
+
+  $("#addr").val(address);
+}
+
+function geocodeError() {
+  $("#addr").val(address);
 }
