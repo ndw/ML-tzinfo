@@ -44,16 +44,8 @@ let $lon    := if (exists($lons) and $lons castable as xs:float)
 return
   <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-      <title>TZ Info</title>
-      <style type="text/css">
-.error {{
-  padding-left: 1em;
-  padding-top: 0.25em;
-  padding-bottom: 0.25em;
-  background-color: #AA0000;
-  color: #FFFFFF;
-}}
-      </style>
+      <title>Timezone details</title>
+      <link rel="stylesheet" type="text/css" href="/css/tz-info.css" />
     </head>
     <body>
       <h1>Timezone details</h1>

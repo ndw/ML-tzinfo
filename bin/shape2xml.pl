@@ -26,6 +26,7 @@ my $ua = undef;
 if ($postURI) {
     $ua = new LWP::UserAgent;
     $ua->timeout(1200);
+    $ua->ssl_opts('verify_hostname' => 0, 'SSL_verify_mode' => 0x00);
 }
 
 foreach my $id (1 .. $shapefile->shapes()) {
@@ -71,10 +72,14 @@ foreach my $id (1 .. $shapefile->shapes()) {
 
     $data .= "</timezone>\n";
 
-    if ($postURI) {
-        postXML($data);
+    if ($name =~ /Etc/) {
+        print STDERR "Skip $name\n";
     } else {
-        saveXML($data, $dir, $xml);
+        if ($postURI) {
+            postXML($data);
+        } else {
+            saveXML($data, $dir, $xml);
+        }
     }
 }
 
@@ -119,7 +124,8 @@ sub postXML {
         $resp = $ua->request($req);
     }
 
-    die "POST failed: " . $resp->code() unless $resp->code eq 200;
+    die "POST failed: " . $resp->code() . "\n" . $resp->content()
+        unless $resp->code eq 200;
 
     print $resp->content(), "\n";
 }

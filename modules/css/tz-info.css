@@ -1,0 +1,22 @@
+#map {
+    width: 100%;
+    height: 80%;
+}
+
+#tz {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+#latlon {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.error {
+  padding-left: 1em;
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+  background-color: #AA0000;
+  color: #FFFFFF;
+}

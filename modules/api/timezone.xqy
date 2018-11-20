@@ -27,21 +27,22 @@ let $dt   := if (exists($tz))
              else ()
 
 return
-  (xdmp:set-response-content-type("application/json"),
-   concat("{""lat"": ", $lat, ",&#10;",
-          """lon"": ", $lon, ",&#10;",
-          """timezone"": """, $tz, """",
-          if (exists($dt))
-          then
-            string-join(("",
-                         concat("""gmtoffset"": """, tzinfo:gmtoffset($dt, $tz), """"),
-                         concat("""dstoffset"": """, tzinfo:dstoffset($dt, $tz), """"),
-                         concat("""format"": """, tzinfo:format($dt, $tz), """"),
-                         concat("""dt"": """, $dt, """"),
-                         concat("""utc"": """, $utc, """")),
-                         ",")
-          else
-            (),
-          "}&#10;"))
-
+  if (exists($dt))
+  then
+    object-node {
+      "lat": $lat,
+      "lon": $lon,
+      "timezone": $tz,
+      "gmtoffset": tzinfo:gmtoffset($dt, $tz),
+      "dstoffset": tzinfo:dstoffset($dt, $tz),
+      "format": tzinfo:format($dt, $tz),
+      "dt": $dt,
+      "utc": $utc
+    }
+  else
+    object-node {
+      "lat": $lat,
+      "lon": $lon,
+      "timezone": $tz
+    }
 

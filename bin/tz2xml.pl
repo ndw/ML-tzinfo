@@ -24,6 +24,7 @@ my $ua = undef;
 if ($postURI) {
     $ua = new LWP::UserAgent;
     $ua->timeout(300);
+    $ua->ssl_opts('verify_hostname' => 0, 'SSL_verify_mode' => 0x00);
 }
 
 my $zone = undef;
@@ -99,10 +100,10 @@ sub parseRule {
         print STDERR "Unexpected at: $_\n";
     }
 
-    if ($save =~ /^(\d+):(\d+)$/) {
-        $save = "PT$1H$2M";
+    if ($save =~ /^(-?)(\d+):(\d+)$/) {
+        $save = "$1PT$2H$3M";
     } else {
-        print STDERR "Unexpected save: $_\n";
+        print STDERR "Unexpected save: $save in $_\n";
     }
 
     $on = sprintf("%02d", $on) if $on =~ /^(\d+)$/;
@@ -274,7 +275,8 @@ sub postXML {
         $resp = $ua->request($req);
     }
 
-    die "POST failed: " . $resp->code() unless $resp->code eq 200;
+     die "POST failed: " . $resp->code() . "\n" . $resp->content()
+        unless $resp->code eq 200;
 
     print $resp->content(), "\n";
 }

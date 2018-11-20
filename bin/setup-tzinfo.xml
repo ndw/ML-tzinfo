@@ -1,4 +1,4 @@
-<export><workspace name="setup-tzinfo"><query name="Query 1" focus="true" active="true" content-source="as:7999856216266197863:" mode="xquery">xquery version "1.0-ml";
+<export><workspace name="setup-tzinfo"><query name="Query 1" focus="true" listorder="1" taborder="1" active="true" database="11879689522459729672" server="1491995507959054765" database-name="Documents" server-name="App-Services" mode="xquery">xquery version "1.0-ml";
 
 import module namespace admin="http://marklogic.com/xdmp/admin" 
        at "/MarkLogic/admin.xqy";
@@ -8,10 +8,10 @@ declare namespace f="http://marklogic.com/xdmp/assignments";
 
 (: Adjust these to taste :)
 declare variable $FOREST-NAME   := "tzinfo";
-declare variable $FOREST-COUNT  := 4;
+declare variable $FOREST-COUNT  := 2;
 declare variable $DATABASE-NAME := "tzinfo";
 declare variable $HTTP-NAME     := "tzinfo";
-declare variable $HTTP-ROOT     := "/projects/github/ML-tzinfo/MLS";
+declare variable $HTTP-ROOT     := "/projects/github/ML-tzinfo/modules";
 declare variable $HTTP-PORT     := 8302;
 declare variable $GROUP         := xdmp:group("Default");
 
@@ -54,8 +54,12 @@ let $config  := local:create-forests($config, 1)
 let $config  := admin:database-create($config, $DATABASE-NAME,
                                       xdmp:database("Security"),
                                       xdmp:database("Schemas"))
-let $dbid as xs:unsignedLong
-  := $config/db:databases/db:database[db:database-name = $DATABASE-NAME]/db:database-id
+let $dbid    := admin:database-get-id($config, $DATABASE-NAME)
+let $config  := admin:database-add-path-namespace($config, $dbid,
+                  admin:database-path-namespace("tzp","http://nwalsh.com/ns/tzpolygon"))
+let $index1  := admin:database-geospatial-region-path-index("/tzp:box", "wgs84", 5, "reject")
+let $index2  := admin:database-geospatial-region-path-index("/tzp:region", "wgs84", 5, "reject")
+let $config  := admin:database-add-geospatial-region-path-index($config, $dbid, ($index1,$index2))
 
 let $_       := admin:save-configuration($config)
 
@@ -65,7 +69,6 @@ let $config  := local:attach-forests($config, $dbid, 1)
 
 let $config  := admin:http-server-create($config, $GROUP, $HTTP-NAME, $HTTP-ROOT,
                                          $HTTP-PORT, 0, $dbid)
-
 
 let $srvid   := admin:appserver-get-id($config, $GROUP, $HTTP-NAME)
 let $config  := admin:appserver-set-url-rewriter($config, $srvid, "/rewriter.xml")

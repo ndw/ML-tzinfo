@@ -15,11 +15,9 @@
     <dispatch>/map.xqy</dispatch>
   </match-path>
 
-  <match-path matches="^/map/([^/]+)/([^/]+)(/boundaries(/debug)?)?$">
+  <match-path matches="^/map/([^/]+)/([^/]+)$">
     <add-query-param name="lat">$1</add-query-param>
-    <add-query-param name="lon">$2</add-query-param>
-    <add-query-param name="bounds">$3</add-query-param>
-    <add-query-param name="debugbounds">$4</add-query-param>
+    <add-query-param name="lon">$2</add-query-param>f
     <dispatch>/map.xqy</dispatch>
   </match-path>
 
@@ -31,8 +29,14 @@
     <dispatch>/api/timezone.xqy</dispatch>
   </match-path>
 
-  <match-path any-of="/api/timezone-details">
-    <dispatch>/api/timezone-details.xqy</dispatch>
+  <match-path matches="/api/polygons/(.+)$">
+    <add-query-param name="timezone">$1</add-query-param>
+    <dispatch>/api/polygons.xqy</dispatch>
   </match-path>
 
+  <match-method any-of="POST">
+    <match-path any-of="/upload">
+      <dispatch>/upload.xqy</dispatch>
+    </match-path>
+  </match-method>
 </rewriter>

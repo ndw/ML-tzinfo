@@ -1,0 +1,41 @@
+{
+    "config":
+    [
+        { "match": ".*",
+          "content-type": "application/octet-stream",
+          "permissions":
+          [
+              { "timezone-user": "read" },
+              { "weblog-editor": "update" }
+          ]
+        },
+        { "match": ".*\\.png$",
+          "content-type": "image/png"
+        },
+        { "match": [ ".*\\.jpg$", ".*\\.jpeg$" ],
+          "content-type": "image/jpeg"
+        },
+        { "match": ".*\\.svg$",
+          "content-type": "application/svg+xml"
+        },
+        { "match": ".*\\.xqy$",
+          "permissions+":
+          [
+              { "timezone-user": "execute" }
+          ]
+        },
+        { "match": ".*\\.sjs$",
+          "permissions+":
+          [
+              { "timezone-user": "execute" }
+          ]
+        },
+        { "match": ".*\\.xsl$",
+          "content-type": "application/xml+xslt",
+          "permissions+":
+          [
+              { "timezone-user": "execute" }
+          ]
+        }
+    ]
+}

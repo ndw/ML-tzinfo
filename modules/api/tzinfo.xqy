@@ -2,6 +2,8 @@ xquery version "1.0-ml";
 
 module namespace tzinfo="http://nwalsh.com/ns/tzinfo";
 
+declare namespace tzp = "http://nwalsh.com/ns/tzpolygon";
+
 declare default function namespace "http://www.w3.org/2005/xpath-functions";
 
 declare variable $zc := "http://nwalsh.com/collections/tzboxes";
@@ -136,33 +138,29 @@ declare function tzinfo:timezone(
   $lon as xs:float
 ) as xs:string*
 {
-  let $pt      := <feature><lat>{$lat}</lat><lon>{$lon}</lon></feature>
-  let $tzboxes := cts:search(collection($zc), cts:reverse-query($pt))/*
+  let $ref    := cts:geospatial-region-path-reference("/tzp:box")
+  let $pt     := cts:point($lat, $lon)
+  let $query  := cts:geospatial-region-query($ref, "contains", $pt)
+  let $result := cts:search(collection(), $query)
+  let $result := if (count($result) gt 1)
+                 then
+                   let $ref   := cts:geospatial-region-path-reference("/tzp:region")
+                   let $query := cts:geospatial-region-query($ref, "contains", $pt)
+                   return
+                     cts:search(collection(), $query)
+                 else
+                   $result
   return
-    if (count($tzboxes) = 0)
+    if (count($result) = 1)
     then
+      let $name := xdmp:node-uri($result)
+      let $name := if (contains($name, "/box"))
+                   then substring-before($name, "/box")
+                   else substring-before($name, "/region")
+      return
+        substring-after($name, "/maps/")
+    else
       ()
-    else if (count($tzboxes) = 1)
-      then
-        tzinfo:extract-tzname($tzboxes)
-      else
-        let $boxc   := for $box in $tzboxes
-                       let $tz := substring-after(xdmp:node-uri($box), "/boxes/")
-                       return concat($bc, "/", $tz)
-        let $pboxes := if (empty($boxc))
-                       then ()
-                       else cts:search(collection($boxc), cts:reverse-query($pt))/*
-        return
-          if (count($pboxes) = 1)
-          then
-            tzinfo:extract-tzname($pboxes)
-          else
-            let $plyc  := $pboxes ! xdmp:node-uri(.)
-            let $polys := if (empty($plyc))
-                          then ()
-                          else cts:search(collection($plyc), cts:reverse-query($pt))/*
-            return
-              tzinfo:extract-tzname($polys)
 };
 
 declare function tzinfo:timezone-details(
