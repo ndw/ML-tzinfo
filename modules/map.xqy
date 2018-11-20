@@ -32,6 +32,7 @@ let $dt     := if (empty(timezone-from-dateTime($dt)))
 
 let $lats    := xdmp:get-request-field("lat")
 let $lons    := xdmp:get-request-field("lon")
+let $tzreq   := xdmp:get-request-field("timezone")
 
 return
   <html xmlns="http://www.w3.org/1999/xhtml">
@@ -60,7 +61,7 @@ return
       </p>
       <input type="hidden" id="lat" name="lat" value="{$lats}"/>
       <input type="hidden" id="lon" name="lon" value="{$lons}"/>
-      <input type="hidden" id="timezone" name="timezone" value=""/>
+      <input type="hidden" id="timezone" name="timezone" value="{$tzreq}"/>
     </body>
     <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
             integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
