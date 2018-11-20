@@ -6,9 +6,8 @@ declare namespace tzp = "http://nwalsh.com/ns/tzpolygon";
 
 declare default function namespace "http://www.w3.org/2005/xpath-functions";
 
-declare variable $zc := "http://nwalsh.com/collections/tzboxes";
-declare variable $bc := "http://nwalsh.com/collections/tzpolyboxes";
-declare variable $qc := "http://nwalsh.com/collections/tzpolygons";
+declare variable $zb := "http://nwalsh.com/collections/tzboxes";
+declare variable $zr := "http://nwalsh.com/collections/tzregions";
 
 declare option xdmp:mapping "false";
 
@@ -140,78 +139,31 @@ declare function tzinfo:timezone(
 {
   let $ref    := cts:geospatial-region-path-reference("/tzp:box")
   let $pt     := cts:point($lat, $lon)
-  let $query  := cts:geospatial-region-query($ref, "contains", $pt)
-  let $result := cts:search(collection(), $query)
-  let $result := if (count($result) gt 1)
+  let $query  := cts:geospatial-region-query($ref, "covers", $pt)
+  let $result := cts:search(collection($zb), $query)
+  let $result := if (count($result) ne 1)
                  then
                    let $ref   := cts:geospatial-region-path-reference("/tzp:region")
-                   let $query := cts:geospatial-region-query($ref, "contains", $pt)
+                   let $query := cts:geospatial-region-query($ref, "covers", $pt)
                    return
-                     cts:search(collection(), $query)
+                     cts:search(collection($zr), $query)
                  else
                    $result
+  let $result := if (count($result) le 1)
+                 then
+                   $result
+                 else
+                   (xdmp:log("Multiple timezones: " || string-join($result ! xdmp:node-uri(.), " ")),
+                    $result[1])
+  (: let $_      := xdmp:log($lat || "," || $lon || ": " || $result ! xdmp:node-uri(.)) :)
+  where exists($result)
   return
-    if (count($result) = 1)
-    then
-      let $name := xdmp:node-uri($result)
-      let $name := if (contains($name, "/box"))
-                   then substring-before($name, "/box")
-                   else substring-before($name, "/region")
-      return
-        substring-after($name, "/maps/")
-    else
-      ()
-};
-
-declare function tzinfo:timezone-details(
-  $lat as xs:float,
-  $lon as xs:float
-) as element(tzdetails)
-{
-  (: yes tzdetails should be in a namespace, but I'm getting a weird cross-platform
-     bug when I do that. Temporary workaround: live without the namespace.
-  :)
-  let $names := tzinfo:timezone($lat, $lon)
-  let $pt    := <feature><lat>{$lat}</lat><lon>{$lon}</lon></feature>
-  return
-    <tzdetails>
-      <lat>{$lat}</lat>
-      <lon>{$lon}</lon>
-      { for $name in $names
-        return
-          <name>{$name}</name>
-      }
-      {
-        let $tzboxes := cts:search(collection($zc), cts:reverse-query($pt))/*
-        let $boxc    := for $box in $tzboxes
-                        let $tz := substring-after(xdmp:node-uri($box), "/boxes/")
-                        return concat($bc, "/", $tz)
-        let $pboxes  := if (empty($boxc))
-                        then ()
-                        else cts:search(collection($boxc), cts:reverse-query($pt))/*
-        let $plyc    := $pboxes ! xdmp:node-uri(.)
-        let $polys   := if (empty($plyc))
-                        then ()
-                        else cts:search(collection($plyc), cts:reverse-query($pt))/*
-        let $allp    := for $name in $names
-                        let $coll := concat("/polys/", $name, "/0")
-                        return
-                          collection($coll)/*
-        return
-          (<tzboxes>
-             { tzinfo:boxes($tzboxes) }
-           </tzboxes>,
-           <polyboxes>
-             { tzinfo:boxes($pboxes) }
-           </polyboxes>,
-           <mpolygons>
-             { tzinfo:boxes($polys) }
-           </mpolygons>,
-           <polygons>
-             { tzinfo:boxes($allp except $polys) }
-           </polygons>)
-      }
-    </tzdetails>
+    let $name := xdmp:node-uri($result)
+    let $name := if (contains($name, "/box"))
+                 then substring-before($name, "/box")
+                 else substring-before($name, "/region")
+    return
+      substring-after($name, "/maps/")
 };
 
 declare private function tzinfo:extract-tzname(
